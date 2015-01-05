@@ -1,0 +1,48 @@
+file:///C:/Users/Programer%20Java/Google%20Drive/BECi%20Co,..%20Ltd/Document%20Operator%20Chat-Vote/TRUE-SMS%20GateWay%20Testing%20Guide%20for%20CP%20V3.0xx.pdf
+
+Page 20
+
+Page 41
+
+
+POST / HTTP/1.1
+Authorization: Basic MDEwMTEwMjE1NjpxV0FDZ1hiNA==
+Content-Type: text/xml
+Charset: TIS-620
+Content-Length: 396
+Connection: Close
+Host: 203.144.187.119:55000
+
+POST / HTTP /<HTTP Version>
+For HTTP protocol version that recommended to HTTP 1.1 only.
+Authorization: Basic <Base 64 Encoding>
+This parameter use for request access to SMSGW by user/password that encryption by Base64 encoding.
+Content-Type:<Content type>
+The type of HTTP content that recommended to use “text/xml” only
+Charset: <character encoding>
+
+For specify the character encoding of the HTTP content relate to content type. You can use UTF-8 or TIS-620
+If not set the web server shall be use default encoding to decode the HTTP content instead.
+Content-Length:<length of HTTP content>
+For specify the number of charactors in HTTP content.
+Connection:<type of connection>
+The type of connection that connect to SMSGW it have 2 mode.
+Connection:Close: Single requests to use a single connection.
+Connection:Keep-Alive: Multiple requests to use a single connection (Recommended).
+
+Host:<Server IP address>:<TCP port>
+For specify destination IP address and port of SMSGW
+
+
+1TrueMoveService : Mozilla/5.0
+2TrueMoveService : text/xml; charset=ISO-8859-1
+3TrueMoveService : text/xml; charset=ISO-8859-1
+4TrueMoveService : 763
+5TrueMoveService : org.apache.tomcat.util.http.NamesEnumerator@26e00675
+6TrueMoveService : POST
+7TrueMoveService : user-agent : Mozilla/5.0
+7TrueMoveService : content-type : text/xml; charset=ISO-8859-1
+7TrueMoveService : authorization : Basic MDEwMTEwMjE1NjpxV0FDZ1hiNA==
+7TrueMoveService : content-length : 763
+7TrueMoveService : host : localhost:8080
+7TrueMoveService : connection : Keep-Alive

@@ -1,0 +1,177 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:jee="http://www.springframework.org/schema/jee"
+       xsi:schemaLocation="
+       http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans-4.1.xsd
+        http://www.springframework.org/schema/util
+        http://www.springframework.org/schema/util/spring-util-4.1.xsd
+        http://www.springframework.org/schema/tx
+        http://www.springframework.org/schema/tx/spring-tx-4.1.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context-4.1.xsd
+        http://www.springframework.org/schema/mvc
+        http://www.springframework.org/schema/mvc/spring-mvc-4.1.xsd
+        http://www.springframework.org/schema/jee
+		http://www.springframework.org/schema/jee/spring-jee-4.1.xsd
+        ">
+
+    <context:annotation-config />
+    <context:component-scan base-package="com.beci.model.dao"/>
+    <context:component-scan base-package="com.beci.service"/>
+    <context:component-scan base-package="com.beci.controller"/>
+
+    <mvc:annotation-driven />
+    <util:properties id="config" location="classpath:config.properties"/>
+    <tx:annotation-driven transaction-manager="transactionManager"/>
+
+    <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <property name="prefix" value="/WEB-INF/pages/"/>
+        <property name="suffix" value=".jsp"/>
+    </bean>
+
+    <bean id="sessionFactory" class="org.springframework.orm.hibernate4.LocalSessionFactoryBean">
+        <property name="dataSource">
+            <bean class="org.springframework.jndi.JndiObjectFactoryBean">
+                <property name="jndiName" value="#{config['jnid']}"/>
+            </bean>
+        </property>
+        <property name="packagesToScan" value="com.beci.model"/>
+        <property name="hibernateProperties">
+            <props>
+                <prop key="hibernate.dialect">org.hibernate.dialect.MySQL5Dialect</prop>
+                <prop key="hibernate.show_sql">false</prop>
+                <prop key="hibernate.hbm2ddl.auto">update</prop>
+            </props>
+        </property>
+    </bean>
+    <bean id="transactionManager" class="org.springframework.orm.hibernate4.HibernateTransactionManager">
+        <property name="sessionFactory" ref="sessionFactory"/>
+    </bean>
+
+    <!--[BEGIN] Lib for convert XML -->
+    <bean id="xStream" class="com.thoughtworks.xstream.XStream">
+        <constructor-arg>
+            <bean class="com.thoughtworks.xstream.io.xml.StaxDriver" >
+                <constructor-arg >
+                    <bean class="com.thoughtworks.xstream.io.xml.XmlFriendlyReplacer" >
+                        <constructor-arg type="java.lang.String" value="#{config['xStream.dollar_sign']}" />
+                        <constructor-arg type="java.lang.String" value="#{config['xStream.underscore']}" />
+                    </bean>
+                </constructor-arg>
+            </bean>
+        </constructor-arg>
+    </bean>
+    <!--[END] Lib for convert XML -->
+
+    <!--Connection-->
+    <bean id="amqConnectionFactory" class="org.apache.activemq.ActiveMQConnectionFactory">
+        <constructor-arg >
+            <bean class="java.net.URI">
+                <constructor-arg index="0" value="#{config['active.mq.ip']}" />
+            </bean>
+        </constructor-arg>
+    </bean>
+    <bean id="connection" class="javax.jms.Connection"
+          factory-bean="amqConnectionFactory"
+          factory-method="createConnection"
+          destroy-method="close"/>
+    <bean id="sessionJMS" class="javax.jms.Session"
+          factory-bean="connection"
+          factory-method="createSession"
+          destroy-method="close">
+        <constructor-arg index="0" value="false"/>
+        <constructor-arg index="1" value="1"/> <!-- Session.AUTO_ACKNOWLEDGE = 1 -->
+    </bean>
+    <!--Connection-->
+
+    <!--Destination-->
+    <bean id="moDestination" class="org.apache.activemq.command.ActiveMQQueue">
+        <constructor-arg value="#{config['active.mq.mo.destination']}" />
+    </bean>
+    <bean id="mtDestination" class="org.apache.activemq.command.ActiveMQQueue">
+        <constructor-arg value="#{config['active.mq.mt.destination']}" />
+    </bean>
+    <!--Destination-->
+
+    <!--Message producer-->
+    <bean id="moMessageProducer" class="javax.jms.MessageProducer"
+          factory-bean="sessionJMS"
+          factory-method="createProducer"
+          destroy-method="close">
+        <constructor-arg index="0" ref="moDestination"/>
+        <property name="deliveryMode" value="#{config['active.mq.mo.deliveryMode']}" />
+    </bean>
+    <bean id="mtMessageProducer" class="javax.jms.MessageProducer"
+          factory-bean="sessionJMS"
+          factory-method="createProducer"
+          destroy-method="close">
+        <constructor-arg index="0" ref="mtDestination"/>
+        <property name="deliveryMode" value="#{config['active.mq.mt.deliveryMode']}" />
+    </bean>
+    <!--Message producer-->
+
+    <!--Listener Receiver-->
+    <bean id="moMessageListenerContainer" class="org.springframework.jms.listener.DefaultMessageListenerContainer">
+        <property name="connectionFactory" ref ="amqConnectionFactory" />
+        <property name="destination" ref ="moDestination"/>
+        <property name="messageListener" ref ="moQueueReceiver"/>
+        <property name="concurrentConsumers" value="#{config['active.mq.mo.concurrentConsumers']}" />
+    </bean>
+    <bean id="mtMessageListenerContainer" class="org.springframework.jms.listener.DefaultMessageListenerContainer">
+        <property name="connectionFactory" ref ="amqConnectionFactory" />
+        <property name="destination" ref ="mtDestination"/>
+        <property name="messageListener" ref ="mtQueueReceiver"/>
+        <property name="concurrentConsumers" value="#{config['active.mq.mt.concurrentConsumers']}" />
+    </bean>
+    <!--Listener Receiver-->
+
+    <!--Sender-->
+    <bean id="moQueueSender" class="com.beci.service.jms.mo.MOQueueSender">
+        <constructor-arg index="0" ref="sessionJMS" />
+        <constructor-arg index="1" ref="moMessageProducer" />
+    </bean>
+    <bean id="mtQueueSender" class="com.beci.service.jms.mt.MTQueueSender">
+        <constructor-arg index="0" ref="sessionJMS" />
+        <constructor-arg index="1" ref="mtMessageProducer" />
+    </bean>
+    <!--Sender-->
+
+    <!--Receiver-->
+    <bean id="moQueueReceiver" class="com.beci.service.jms.mo.MOQueueReceiver">
+        <constructor-arg index="0" ref="mtQueueSender" />
+    </bean>
+    <bean id="mtQueueReceiver" class="com.beci.service.jms.mt.MTQueueReceiver">
+        <constructor-arg index="0" ref="mtQueueSender" />
+    </bean>
+    <!--Receiver-->
+
+    <!--Logger-->
+    <bean id="normalLogger" class="org.slf4j.LoggerFactory" factory-method="getLogger">
+        <constructor-arg index="0" value="#{config['log.normal']}"/>
+    </bean>
+    <bean id="moLogger" class="org.slf4j.LoggerFactory" factory-method="getLogger">
+        <constructor-arg index="0" value="#{config['log.mo']}"/>
+    </bean>
+    <bean id="mtLogger" class="org.slf4j.LoggerFactory" factory-method="getLogger">
+        <constructor-arg index="0" value="#{config['log.mt']}"/>
+    </bean>
+    <!--Logger-->
+
+    <!-- It not ready yet -->
+    <!--<jee:jndi-lookup id="mqConnectionFactory" jndi-name="java:comp/env/jms/mqConnectionFactory" />-->
+    <!--<jee:jndi-lookup id="moQueue" jndi-name="java:comp/env/jms/moQueue" />-->
+
+    <!--<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource">-->
+        <!--<property name="driverClassName" value="#{config['hibernate.driverClassName']}"/>-->
+        <!--<property name="url" value="#{config['url']}"/>-->
+        <!--<property name="username" value="#{config['username']}"/>-->
+        <!--<property name="password" value="#{config['password']}"/>-->
+    <!--</bean>-->
+</beans>
+
+
