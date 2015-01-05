@@ -36,7 +36,7 @@ public class TrueMoveServiceImpl extends RequestResponseService implements Opera
             normalLogger.debug("HEADER[{} : {}]", headerName, request.getHeader(headerName));
         }
 
-        //load user and password from database. sadfsadf
+        //load user and password from database.
         String authorization = request.getHeader("authorization");
         try {
             AuthorizationBase64 authorizationBase64 = new AuthorizationBase64("0101102156", "qWACgXb4");
