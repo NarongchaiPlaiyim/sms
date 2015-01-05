@@ -25,8 +25,7 @@ import java.util.Enumeration;
 @Scope(BeanDefinition.SCOPE_PROTOTYPE)
 @Transactional(propagation= Propagation.REQUIRED)
 public class TrueMoveServiceImpl extends RequestResponseService implements OperatorService {
-    @Value("#{config['mo.priority.truemove']}")
-    private int priority;
+    @Value("#{config['mo.priority.truemove']}") private int priority;
 
     @Override
     public void process(HttpServletRequest request, HttpServletResponse response) throws Exception{

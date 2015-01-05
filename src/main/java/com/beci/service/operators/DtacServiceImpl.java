@@ -20,8 +20,7 @@ import javax.servlet.http.HttpServletResponse;
 @Scope(BeanDefinition.SCOPE_PROTOTYPE)
 @Transactional
 public class DtacServiceImpl extends RequestResponseService implements OperatorService {
-    @Value("#{config['mo.priority.dtac']}")
-    private int priority;
+    @Value("#{config['mo.priority.dtac']}") private int priority;
 
     @Override
     public void process(HttpServletRequest request, HttpServletResponse response) {

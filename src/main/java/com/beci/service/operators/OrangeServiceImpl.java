@@ -25,8 +25,7 @@ import java.util.stream.IntStream;
 public class OrangeServiceImpl extends RequestResponseService implements OperatorService {
     @Resource private ProfileDAO profileDAO;
 
-    @Value("#{config['mo.priority.orange']}")
-    private int priority;
+    @Value("#{config['mo.priority.orange']}") private int priority;
 
     @Override
     public void process(HttpServletRequest request, HttpServletResponse response) {
