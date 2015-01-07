@@ -162,7 +162,8 @@
     </bean>
     <!--Logger-->
 
-    <!-- It not ready yet -->
+    <bean id="controller" class="com.beci.controller.Controller" />
+
     <!--<jee:jndi-lookup id="mqConnectionFactory" jndi-name="java:comp/env/jms/mqConnectionFactory" />-->
     <!--<jee:jndi-lookup id="moQueue" jndi-name="java:comp/env/jms/moQueue" />-->
 
