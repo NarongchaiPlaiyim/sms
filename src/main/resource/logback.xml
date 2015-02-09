@@ -16,6 +16,20 @@
             <pattern>%-5level [%thread] [%file:%line] [%date] || %msg%n</pattern>
         </encoder>
     </appender>
+    <appender name="MT-FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_HOME}/MT.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <FileNamePattern>${LOG_HOME}/MT.%d{yyyy-MM-dd}.%i.log</FileNamePattern>
+            <timeBasedFileNamingAndTriggeringPolicy
+                    class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>50MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%-5level [%thread] [%file:%line] [%date] || %msg%n</pattern>
+        </encoder>
+    </appender>
     <appender name="NORMAL-FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOG_HOME}/Normal.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
@@ -51,6 +65,9 @@
         </layout>
     </appender>
 
+    <logger name="MT" level="DEBUG" additivity="false">
+        <appender-ref ref="MT-FILE"/>
+    </logger>
     <logger name="MO" level="DEBUG" additivity="false">
         <appender-ref ref="MO-FILE"/>
     </logger>
